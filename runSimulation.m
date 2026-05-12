@@ -123,3 +123,4 @@ title('Differenz zur Referenzposition')
 xlabel('time in s')
 ylabel('Differenz in m')
 
+%cool
