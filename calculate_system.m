@@ -119,7 +119,7 @@ end
 
 
 %% Übertragungsfunktionen
-s = tfss;
+s = tf('s');
 G_u_y1 = tf()
 
 %% 4.2.3
