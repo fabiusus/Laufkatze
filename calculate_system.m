@@ -120,7 +120,9 @@ end
 
 %% Übertragungsfunktionen
 s = tf('s');
-G_u_y1 = tf()
+
+G_u_y1 = simplify(C_lin_sym() * inv(s * eye(size(A_num)) - A_num) * B_num);
+G_u_y2 = simplify(C_lin)
 
 %% 4.2.3
 
