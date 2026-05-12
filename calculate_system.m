@@ -2,10 +2,10 @@
 clear; clc;
 
 % Wir definieren ALLES zunächst rein symbolisch
-syms l m_1 m_s M k_r r g real
+syms l m_1 m_s M k_r r g a real
 syms phi x xdot xdotdot phidot phidotdot real 
 syms z1 z2 z3 z4 u real
-syms y real
+syms y real 
 
 %% 1. Gleichungen aufstellen und nach höchsten Ableitungen auflösen
 % R-Ausdrücke (werden als Gleichungen R = 0 interpretiert)
@@ -13,17 +13,14 @@ R1 = phidotdot * l^2 * m_1 + xdotdot*l*m_1*cos(phi) + g*l*m_1*sin(phi) == 0;
 R2 = l*m_1*sin(phi)*phidot^2 - xdotdot*m_1 - xdotdot*m_s - phidotdot*l*m_1*cos(phi) - k_r*xdot + M/r == 0;
 
 % MATLAB löst das Gleichungssystem nach phi_ddot und x_ddot auf
-sol = solve([R1, R2], [phidotdot, xdotdot]);
-
+sol = solve([R1, R2], [phidotdot,xdotdot ]);
 phidotdot_sol = simplify(sol.phidotdot);
 xdotdot_sol   = simplify(sol.xdotdot);
-
 %% 2. Nichtlineare Zustandsraumdarstellung aufstellen
 % Wir substituieren die alten physikalischen Variablen durch die Zustandsvariablen
 % z = [z1; z2; z3; z4] = [phi; phidot; x; xdot]
 sub_old = [phi, phidot, x, xdot, M];
 sub_new = [z1,  z2,     z3, z4,   u];
-
 f_phidotdot = subs(phidotdot_sol, sub_old, sub_new);
 f_xdotdot   = subs(xdotdot_sol,   sub_old, sub_new);
 
@@ -106,4 +103,11 @@ if rankControllability == size(A_num, 1)
 else
     disp('Das System ist nicht steuerbar.');
 end
-%hallo 
+% --- Berechnung der Ruhelagen für die Zustandsvariablen z ---
+%% 7.ruhelagen
+eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
+z1_sym = solve(eq_ruhe, z1); 
+z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
+z_eq_num = [z1_num; 0; 0; 0];
+disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
+disp(z_eq_num);
