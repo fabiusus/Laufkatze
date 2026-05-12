@@ -1,14 +1,13 @@
 %% 0. Symbolische Variablen initialisieren
 clear; clc;
 
-% Wir definieren ALLES zunächst rein symbolisch
 syms l m_1 m_s M k_r r g real
 syms phi x xdot xdotdot phidot phidotdot real 
 syms z1 z2 z3 z4 u real
 syms y real
 
 %% 1. Gleichungen aufstellen und nach höchsten Ableitungen auflösen
-% R-Ausdrücke (werden als Gleichungen R = 0 interpretiert)
+
 R1 = phidotdot * l^2 * m_1 + xdotdot*l*m_1*cos(phi) + g*l*m_1*sin(phi) == 0;
 R2 = l*m_1*sin(phi)*phidot^2 - xdotdot*m_1 - xdotdot*m_s - phidotdot*l*m_1*cos(phi) - k_r*xdot + M/r == 0;
 
@@ -106,4 +105,66 @@ if rankControllability == size(A_num, 1)
 else
     disp('Das System ist nicht steuerbar.');
 end
-%hallo 
+
+% Überprüfen der Beobachtbarkeit
+observabilityMatrix = [C_sym; C_sym * A_sym; C_sym * A_sym^2; C_sym * A_sym^3];
+rankObservability = rank(observabilityMatrix);
+
+% Überprüfen der Beobachtbarkeit
+if rankObservability == size(A_sym, 1)
+    disp('Das System ist beobachtbar.');
+else
+    disp('Das System ist nicht beobachtbar.');
+end
+
+
+%% Übertragungsfunktionen
+s = tfss;
+G_u_y1 = tf()
+
+%% 4.2.3
+
+function u = calculate_u(M, xdot)
+    % Parameter
+    P_max = 3.56; % [cite: 147]
+    r = 0.041; % [cite: 170]
+    
+    % 1. Einzelmoment und omega berechnen
+    M_M = M / 2; % 
+    omega_M = -xdot / r; % 
+    
+    % Sonderfall abfangen (Division durch Null verhindern)
+    if omega_M == 0
+        omega_M = 1e-6; 
+    end
+    
+    % 2. Vorzeichen und Beträge
+    s = sign(M_M);
+    if s == 0
+        s = 1; % Verhindert Probleme bei M = 0
+    end
+    M_abs = abs(M_M);
+    omega_tilde = s * omega_M;
+    
+    % 3. Fall A (Sättigung) testen
+    P_sat = (9.434 * M_abs)^2; % 
+    M_calc_test = (P_sat / abs(omega_M)) - sign(omega_tilde) * M_abs;
+    
+    if M_calc_test >= M_abs
+        P_abs = P_sat;
+    else
+        % 4. Fall B (Linearer Bereich)
+        x = (abs(omega_M) / 2) * ( (sign(omega_tilde)/9.434) + sqrt( (1/9.434^2) + (4*M_abs/abs(omega_M)) ) );
+        P_abs = x^2;
+    end
+    
+    % 5. Leistung berechnen und in Stellgröße umwandeln
+    P = s * P_abs;
+    u_raw = (100 * P) / P_max; % 
+    
+    % 6. Sättigung der Stellgröße auf +/- 100% [cite: 131, 134]
+    u = max(-100, min(100, u_raw));
+end
+
+%% 4.2.4
+u = 625 *sign(M)*M^2;
