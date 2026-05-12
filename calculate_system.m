@@ -66,6 +66,7 @@ vars_num = [9.81, 0.8, 0.1, 1, 7.2e-3, 0.041];
 % Werte in die symbolischen A- und B-Matrizen einsetzen und in double umwandeln
 A_num = double(subs(A_lin_sym, vars_sym, vars_num));
 B_num = double(subs(B_lin_sym, vars_sym, vars_num));
+C_num = double(subs(C_lin_sym, vars_sym, vars_num));
 
 disp('--- Numerische lineare Systemmatrix A ---');
 disp(A_num);
@@ -118,12 +119,21 @@ else
 end
 
 
-%% Übertragungsfunktionen
-s = tf('s');
+%% 7. Übertragungsfunktionen (Rein symbolisch)
+syms s real
+% Matrizen zurück in Symbole wandeln für lesbare Brüche
+A_sym_calc = sym(A_num);
+B_sym_calc = sym(B_num);
+C_sym_calc = sym(C_num);
 
-G_u_y1 = simplify(C_lin_sym(1,:) * inv(s * eye(size(A_num)) - A_num) * B_num)
-G_u_y2 = simplify(C_lin_sym(2,:) * inv(s * eye(size(A_num)) - A_num) * B_num)
+% Formel anwenden: C * inv(s*I - A) * B
+G_sym = C_sym_calc * inv(s * eye(4) - A_sym_calc) * B_sym_calc;
+G_sym = simplify(G_sym);
 
+disp('--- Symbolische Übertragungsfunktion G_u_y1 ---');
+disp(G_sym(1));
+disp('--- Symbolische Übertragungsfunktion G_u_y2 ---');
+disp(G_sym(2));
 
 %% 4.2.3
 
