@@ -172,4 +172,11 @@ end
 %% 4.2.4
 u = 625 *sign(M)*M^2;
 
+%% 7.ruhelagen
+eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
+z1_sym = solve(eq_ruhe, z1); 
+z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
+z_eq_num = [z1_num; 0; 0; 0];
+disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
+
 
