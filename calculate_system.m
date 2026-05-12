@@ -106,3 +106,4 @@ if rankControllability == size(A_num, 1)
 else
     disp('Das System ist nicht steuerbar.');
 end
+%hallo 
