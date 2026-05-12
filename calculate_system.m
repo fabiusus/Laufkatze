@@ -110,4 +110,3 @@ z1_sym = solve(eq_ruhe, z1);
 z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
 z_eq_num = [z1_num; 0; 0; 0];
 disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
-disp(z_eq_num);
