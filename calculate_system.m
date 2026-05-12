@@ -121,8 +121,9 @@ end
 %% Übertragungsfunktionen
 s = tf('s');
 
-G_u_y1 = simplify(C_lin_sym() * inv(s * eye(size(A_num)) - A_num) * B_num);
-G_u_y2 = simplify(C_lin)
+G_u_y1 = simplify(C_lin_sym(1,:) * inv(s * eye(size(A_num)) - A_num) * B_num)
+G_u_y2 = simplify(C_lin_sym(2,:) * inv(s * eye(size(A_num)) - A_num) * B_num)
+
 
 %% 4.2.3
 
@@ -170,3 +171,5 @@ end
 
 %% 4.2.4
 u = 625 *sign(M)*M^2;
+
+
