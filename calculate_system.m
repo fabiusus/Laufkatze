@@ -1,7 +1,7 @@
 %% 0. Symbolische Variablen initialisieren
 clear; clc;
 
-syms l m_1 m_s M k_r r g real
+syms l m_1 m_s M k_r r g a real
 syms phi x xdot xdotdot phidot phidotdot real 
 syms z1 z2 z3 z4 u real
 syms y real
