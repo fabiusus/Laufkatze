@@ -143,11 +143,19 @@ opt = nyquistoptions;
 opt.ShowFullContour = 'off'; 
 
 sys2 = ss(double(A_sym_calc), double(B_sym_calc), double(C_sym_calc(2,:)), 0);
-Gtf = tf(sys2)
+Gtf = tf(sys2);
 figure(1)
 bode(Gtf);
 figure(2)
 nyquist(Gtf, opt);
+
+sys1 = ss(double(A_sym_calc), double(B_sym_calc), double(C_sym_calc(1,:)), 0);
+Gtf1 = tf(sys1);
+
+figure(3)
+bode(Gtf1);
+figure(4)
+nyquist(Gtf1, opt);
 
 %% 4.2.4
 u = 625 *sign(M)*M^2;
