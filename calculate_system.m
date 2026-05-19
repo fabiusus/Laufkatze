@@ -61,7 +61,7 @@ disp(C_lin_sym);
 % Jetzt definieren wir deine Zahlenwerte. 
 % Hinweis: m_l aus deinem Code wurde hier zu m_1 gemacht, damit es zur Formel passt.
 vars_sym = [g,    m_s, m_1, l, k_r,    r];
-vars_num = [9.81, 0.8, 0.1, 1, 7.2e-3, 0.041];
+vars_num = [9.81, 0.8, 1, 1, 7.2e-3, 0.041];
 
 % Werte in die symbolischen A- und B-Matrizen einsetzen und in double umwandeln
 A_num = double(subs(A_lin_sym, vars_sym, vars_num));
@@ -136,16 +136,29 @@ disp('--- Symbolische Übertragungsfunktion G_u_y2 ---');
 disp(G_sym(2));
 
 
+
+%% 4.3.1 Loop-shaping
+
+opt = nyquistoptions;
+opt.ShowFullContour = 'off'; 
+
+sys2 = ss(double(A_sym_calc), double(B_sym_calc), double(C_sym_calc(2,:)), 0);
+Gtf = tf(sys2)
+figure(1)
+bode(Gtf);
+figure(2)
+nyquist(Gtf, opt);
+
 %% 4.2.4
 u = 625 *sign(M)*M^2;
 
 %% 7.ruhelagen
-eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
-z1_sym = solve(eq_ruhe, z1); 
-z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
-z_eq_num = [z1_num; 0; 0; 0];
-disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
-disp(z_eq_num);
+% eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
+% z1_sym = solve(eq_ruhe, z1); 
+% z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
+% z_eq_num = [z1_num; 0; 0; 0];
+% disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
+% disp(z_eq_num);
 
 
 %% 4.2.3
