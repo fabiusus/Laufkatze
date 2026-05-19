@@ -108,11 +108,11 @@ else
 end
 
 % Überprüfen der Beobachtbarkeit
-observabilityMatrix = [C_sym; C_sym * A_sym; C_sym * A_sym^2; C_sym * A_sym^3];
+observabilityMatrix = [C_num; C_num * A_num; C_num * A_num^2; C_num * A_num^3];
 rankObservability = rank(observabilityMatrix);
 
 % Überprüfen der Beobachtbarkeit
-if rankObservability == size(A_sym, 1)
+if rankObservability == size(A_num, 1)
     disp('Das System ist beobachtbar.');
 else
     disp('Das System ist nicht beobachtbar.');
@@ -134,6 +134,19 @@ disp('--- Symbolische Übertragungsfunktion G_u_y1 ---');
 disp(G_sym(1));
 disp('--- Symbolische Übertragungsfunktion G_u_y2 ---');
 disp(G_sym(2));
+
+
+%% 4.2.4
+u = 625 *sign(M)*M^2;
+
+%% 7.ruhelagen
+eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
+z1_sym = solve(eq_ruhe, z1); 
+z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
+z_eq_num = [z1_num; 0; 0; 0];
+disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
+disp(z_eq_num);
+
 
 %% 4.2.3
 
@@ -178,15 +191,4 @@ function u = calculate_u(M, xdot)
     % 6. Sättigung der Stellgröße auf +/- 100% [cite: 131, 134]
     u = max(-100, min(100, u_raw));
 end
-
-%% 4.2.4
-u = 625 *sign(M)*M^2;
-
-%% 7.ruhelagen
-eq_ruhe = subs(f_phidotdot, {z2, z4, u}, {0, 0, 0}) == 0;
-z1_sym = solve(eq_ruhe, z1); 
-z1_num = double(subs(z1_sym(1), vars_sym, vars_num));
-z_eq_num = [z1_num; 0; 0; 0];
-disp('--- Ruhelagen der Zustandsvariablen (z_eq_num) ---');
-
 
