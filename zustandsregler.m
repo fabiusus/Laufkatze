@@ -14,17 +14,18 @@ B=[0; -30.49; 0; 30.49];
 C = eye(4);
 C_new= [1 0 0 0;
     0 0 1 0];
+C_vorfilter = [0 0 1 0];
 
 D = zeros(4,1);
 
-pole = -1.1*[2.5,2.6,2.3,2.4];
+pole = -1*[2.5,2.6,2.3,2.4];
 % pole = -1*[1.1,1.2,1.3,1.4];
 
 x0= [0; 0; 1; 0];
 K = place(A,B,pole);
 
 zhut0 = [0;0;0;0];
-E = place(A',C_new', 3*pole)';
+E = place(A',C_new', 2*pole)';
 
-
+v = -1/(C_vorfilter*(inv(A-B*K)*B));
 
