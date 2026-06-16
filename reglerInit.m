@@ -46,15 +46,24 @@ xi0 = 0;
 
 % E = place(A',C_new', 2*pole_ne)';
 
-poles = [eig(A-B*Kx1), eig(A-B*Kx2), eig(A - B*Kx3), eig(A - B*Kx4), eig(A - B*Kx5), eig(A - B*Kx6)];
+poles = [eig(A-B*Kx(1,:)), eig(A-B*Kx(2,:)), eig(A - B*Kx(3,:)), eig(A - B*Kx(4,:)), eig(A - B*Kx(5,:)), eig(A - B*Kx(6,:))];
 E_temp = zeros(4,12);
 for i = 1:6
     E_temp(:,2*i-1:2*i) = place(A', C_new', 2*poles(:,i))';
 end
 
-%% Sylvester Gleichung
-% 
-% sol = 
+%%Sylvester Gleichingen
+S_sy=[0 0 0 0;
+    0 0 1 0;
+    0 0 0 1;
+    1/T^3 -1/T^3 -3/T^2 -3/T];
+Q_sy = [0 1 0 0];
+ff=[kron(S_sy',eye(4))-kron(eye(4),A), -kron(eye(4),B); -kron(eye(4),C_vorfilter), zeros(4,4)]\[zeros(16,1);Q_sy(:)];
+pi_vec=ff(1:16);
+gamma_vec=ff(17:end);
+Pi=reshape(pi_vec,4,4);
+Gamma=reshape(gamma_vec,1,4);
+
 
 % 
 % %%jold stuff
