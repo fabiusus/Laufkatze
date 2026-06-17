@@ -1,8 +1,10 @@
 %% Initialisierung des Reglers
+ %% Initialisierung des Reglers
 M_max = 0.4;
 E_final = zeros(4,2);
 Kx_final = zeros(1,4);
 Kxi_final = zeros(1,1);
+T = 50.5; %muss noch angepasst werden
 
 m1 = 1;
 g=9.81;
@@ -30,9 +32,10 @@ x0= [0; 0; 1; 0];
 % K = place(A,B,pole_ne);
 K3place = place(A_erw, [B ; 0], pole);
 
-
-Q = [diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3])];
-S = [1, 1, 1, 1, 1, 1];
+%random Regler von Gemini, alter hat nicht funktioniert
+Q = [diag([30,5,2,1,3]), diag([30,5,2,1,3]), diag([30,5,2,1,3]), diag([30,5,2,1,3]), diag([30,5,2,1,3]), diag([30,5,2,1,3])]
+%Q = [diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3]), diag([3,0.01,15,4,3])];
+S = [10, 10, 10, 10, 10, 10];
 Kx=zeros(6, 4);
 Kxi=zeros(6,1);
 for k = 1:6
@@ -49,7 +52,7 @@ xi0 = 0;
 poles = [eig(A-B*Kx(1,:)), eig(A-B*Kx(2,:)), eig(A - B*Kx(3,:)), eig(A - B*Kx(4,:)), eig(A - B*Kx(5,:)), eig(A - B*Kx(6,:))];
 E_temp = zeros(4,12);
 for i = 1:6
-    E_temp(:,2*i-1:2*i) = place(A', C_new', 2*poles(:,i))';
+    E_temp(:,2*i-1:2*i) = place(A', C_new', 3*poles(:,i))';
 end
 
 %%Sylvester Gleichingen

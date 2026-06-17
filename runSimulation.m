@@ -53,7 +53,7 @@ reglerInit
 IC = [phiStart, phi_dotStart, xStart, x_dotStart]; %Vektor mit Anfangsbedingungen 
 
 %% Simulation
-tmax = 600; % Maximal erlaubte Zeit in s (600 für Präsentationsfolie)
+tmax = 6000; % Maximal erlaubte Zeit in s (600 für Präsentationsfolie)
 tSim = [0,tmax]; % Zeitintervall über das simuliert wird
 
 simIn = Simulink.SimulationInput("simulation");
