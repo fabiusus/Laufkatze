@@ -4,7 +4,7 @@ clc
 
 m1 = 1;
 g=9.81;
-T=10
+T=50;
 A= [0 1 0 0;
     -g*(1+m1/0.8) 0 0 0.009;
     0 0 0 1;
@@ -24,13 +24,11 @@ pole_ne = -1*[2.5,2.6,2.3,2.4];
 A_erw = [A zeros(4,1);
         -[0 0 1 0] zeros(1,1)];
 x0= [0; 0; 1; 0];
-% K = place(A,B,pole_ne);
-K3place = place(A_erw, [B ; 0], pole)
-Q= diag([3,0.01,15,4,3]);
-S = diag(1);
-K3 = lqr(A_erw,[B;0],Q,S)
-Kx= K3(:,1:4);
-Kxi = -K3(:,5);
+%K = place(A,B,pole_ne);
+Q= diag([30,0.5,0.3,3]);
+S = diag(100);
+
+K = lqr(A,B,Q,S);
 
 
 
@@ -38,7 +36,7 @@ zhut0 = [0;0;0;0];
 xi0 = 0;
 E = place(A',C_new', 2*pole_ne)';
 
-% v = -1/(C_vorfilter*(inv(A-B*K)*B));
+v = -1/(C_vorfilter*(inv(A-B*K)*B));
 %%Sylvester Gleichingen
 S_sy=[0 0 0 0;
     0 0 1 0;
