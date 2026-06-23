@@ -1,15 +1,14 @@
 %% Initialisierung des Reglers
 
 
-T = [0.3,1.2,1.5,1.7,1.7,3];
-Q = [diag([500,100,50,400,0.01,100,0.01,100]), diag([10000,0.05,70,800,0.1,100,0.1,100]), diag([10000,0.01,5,800,0.01,100,0.01,100]), diag([200,10,5,800,0.01,100,0.01,100]), diag([100,10,5,800,0.01,100,0.01,100]), diag([10000,0.01,5,800,0.01,100,0.01,100])];
-S = [3000, 5000, 5000, 500, 500, 500];
-obs_mult = [5, 5, 5.0, 5.0, 5.0, 5];
+T = [1.5,4,5,6,5,8];
 
+Q = [diag([20,1,10,10,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1])];
+S = [100, 1, 1, 1, 1, 1];
+obs_mult = [5, 3, 5.0, 5.0, 7.0, 7.0];
+%[5000,1,500,400,0.1,10,1,10]
 
-
-G = [1;1;1;1];
-
+G = [1];
 q_basis = [10000,0.01,5,800,0.01,100,0.01,100];
 
 m1_vec = [1,1.5,2.5,3.5,4.5,5];
@@ -39,7 +38,7 @@ D = zeros(4,1);
 % A_erw = [A zeros(4,4);
 %         -G*C_vorfilter S_sy];
 
-B_erww = [B;0;0;0;0];
+B_erww = [B;0];
 
 Kx=zeros(6, 4);
 Kxi=zeros(6,4);
@@ -47,10 +46,11 @@ E_temp = zeros(4, 12);
 
 
 zhut0 = [0;0;0;0];
+xihut0 = zeros(8,1);
 xi0 = [0;0;0;0];
-Q_sy = [0 1 0 0];
-Pi_temp = zeros(4, 24);   
-Gamma_temp = zeros(6, 4); 
+Q_sy = [1];
+Pi_temp = zeros(4, 6);   
+Gamma_temp = zeros(1, 6); 
 for k = 1:6
     T_k = T(k);
     m1_k = m1_vec(k);
@@ -58,28 +58,26 @@ for k = 1:6
         -g*(1+m1_k/0.8) 0 0 0.009;
         0 0 0 1;
         12.26*m1_k 0 0 -0.009];
-    S_sy=[0 0 0 0;
-        0 0 1 0;
-        0 0 0 1;
-        1/T_k^3 -1/T_k^3 -3/T_k^2 -3/T_k];
-    A_erw = [A_k zeros(4,4);
+    S_sy=0;
+    A_erw = [A_k zeros(4,1);
             -G*C_vorfilter S_sy];
-            
    
-    Q_k = Q(:, (((k-1)*8+1):k*8));  
+    Q_k = Q(:, (((k-1)*5+1):k*5));  
     K_temp = lqr(A_erw, B_erww, Q_k, S(k));
     Kx(k,:) = -K_temp(:,1:4);
-    Kxi(k,:) = -K_temp(:,5:8);
+    Kxi(k,:) = -K_temp(:,5);
 
-    
-    
     poles_k = eig(A_k + B*Kx(k,:));
+    % A_beo = [A_k, ones(4,4);
+    %     zeros(4,4), S_sy];
+    
     E_temp(:, 2*k-1:2*k) = place(A_k', C_new', obs_mult(k) * poles_k)';
+    % E_temp(:,2*k-1:2*k) = place(A_beo', [C_new zeros(2,4)]', obs_mult(k)*[poles_k; -2; -2.1; -2.2; -2.3])';
 
-    ff=[kron(S_sy',eye(4))-kron(eye(4),A_k), -kron(eye(4),B); kron(eye(4),C_vorfilter), zeros(4,4)]\[zeros(16,1);Q_sy(:)];
+    ff=[kron(S_sy',eye(4))-kron(eye(1),A_k), -kron(eye(1),B); kron(eye(1),C_vorfilter), 0]\[zeros(4,1);Q_sy(:)];
    
-    Pi_temp(:, 4*k-3:4*k) = reshape(ff(1:16), 4, 4);
-    Gamma_temp(k, :) = reshape(ff(17:end), 1, 4);
+    Pi_temp(:, k) = ff(1:4,1);
+    Gamma_temp(k) = ff(5,1);
 end
 
 % m1 = m1_sim;
@@ -87,3 +85,4 @@ end
 %     -g*(1+m1/0.8) 0 0 0.009;
 %     0 0 0 1;
 %     12.26*m1 0 0 -0.009];
+% 
