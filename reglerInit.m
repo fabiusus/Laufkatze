@@ -1,88 +1,126 @@
-%% Initialisierung des Reglers
-
-
-T = [1.5,4,5,6,5,8];
-
-Q = [diag([20,1,10,10,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1]), diag([1,1,1,1,1])];
-S = [100, 1, 1, 1, 1, 1];
-obs_mult = [5, 3, 5.0, 5.0, 7.0, 7.0];
-%[5000,1,500,400,0.1,10,1,10]
-
-G = [1];
-q_basis = [10000,0.01,5,800,0.01,100,0.01,100];
-
-m1_vec = [1,1.5,2.5,3.5,4.5,5];
-
-% fixed parameters
-
-g=9.81;
-
-E_final = zeros(4,2);
-Kx_final = zeros(1,4);
-Kxi_final = zeros(1,1);
-% System
-x0= [0; 0; 0; 0];
-
-B=[0; -30.49; 0; 30.49];
-C = eye(4);
-C_new= [1 0 0 0;
-    0 0 1 0];
-C_vorfilter = [0 0 1 0];
-D = zeros(4,1);
-
-
-% A= [0 1 0 0;
-%     -g*(1+m1/0.8) 0 0 0.009;
-%     0 0 0 1;
-%     12.26*m1 0 0 -0.009];
-% A_erw = [A zeros(4,4);
-%         -G*C_vorfilter S_sy];
-
-B_erww = [B;0];
-
-Kx=zeros(6, 4);
-Kxi=zeros(6,4);
-E_temp = zeros(4, 12);
-
-
-zhut0 = [0;0;0;0];
-xihut0 = zeros(8,1);
-xi0 = [0;0;0;0];
-Q_sy = [1];
-Pi_temp = zeros(4, 6);   
-Gamma_temp = zeros(1, 6); 
-for k = 1:6
-    T_k = T(k);
-    m1_k = m1_vec(k);
-    A_k = [0 1 0 0;
-        -g*(1+m1_k/0.8) 0 0 0.009;
-        0 0 0 1;
-        12.26*m1_k 0 0 -0.009];
-    S_sy=0;
-    A_erw = [A_k zeros(4,1);
-            -G*C_vorfilter S_sy];
-   
-    Q_k = Q(:, (((k-1)*5+1):k*5));  
-    K_temp = lqr(A_erw, B_erww, Q_k, S(k));
-    Kx(k,:) = -K_temp(:,1:4);
-    Kxi(k,:) = -K_temp(:,5);
-
-    poles_k = eig(A_k + B*Kx(k,:));
-    % A_beo = [A_k, ones(4,4);
-    %     zeros(4,4), S_sy];
-    
-    E_temp(:, 2*k-1:2*k) = place(A_k', C_new', obs_mult(k) * poles_k)';
-    % E_temp(:,2*k-1:2*k) = place(A_beo', [C_new zeros(2,4)]', obs_mult(k)*[poles_k; -2; -2.1; -2.2; -2.3])';
-
-    ff=[kron(S_sy',eye(4))-kron(eye(1),A_k), -kron(eye(1),B); kron(eye(1),C_vorfilter), 0]\[zeros(4,1);Q_sy(:)];
-   
-    Pi_temp(:, k) = ff(1:4,1);
-    Gamma_temp(k) = ff(5,1);
-end
-
-% m1 = m1_sim;
-% A = [0 1 0 0;
-%     -g*(1+m1/0.8) 0 0 0.009;
-%     0 0 0 1;
-%     12.26*m1 0 0 -0.009];
+% Simulationen fuer Projektwettbewerb ERT SS2026
 % 
+% Diese Datei dient als Template fuer die Wettbewerbsaufgabe.
+% 
+% Bitte Verwenden Sie in Ihrer Simulink-Datei keine Umlaute oder 
+% Sonderzeichen. Ansonsten kann es bei der Abgabe Probleme mit dem
+% Zeichencode geben.
+
+clear 
+close all
+
+%% Parameter 
+g = 9.81; %Erdanziehung in m/s^2
+
+
+% Schlitten
+ms = 0.8; % Masse Schlitten in kg
+Mmax=0.2; % Maximales Motordrehmoment in Nm
+wMmax=17.8; % Maximale Motorumdrehungszahl in rad/s
+Pmax=wMmax*Mmax; % Maximale elektrische Motor-Leistung (Watt)
+umax=100; % Maximale Leistungsstufe des Motors in Prozent (gross)
+
+% Pendel 
+l = 1; % Länge des Pendels in m
+dp = 0; % Reibung des Pendels
+phi_max = pi/4; % maximale Auslenkung Pendel
+
+% Rad
+ds = 7.2e-3; % Rollwiderstandskoeffizient
+r = 0.041; % Radradius in m
+
+% Kran
+L = 5; % Länge des Kranauslegers in m
+
+% Stoerung
+Stoerung1 = .1; % .1 = Stoerung ein, 0 = aus
+stoerungNoisePower = 1;
+rng('shuffle');
+stoerungSeed_1 = round((1e4-1)*rand(1));
+
+% Anfangsbedingungen
+
+xStart = 0; % Startposition des Roboters
+x_dotStart = 0; % Startgeschwindigkeit des Roboters
+phiStart = 0; % Anfaenglicher Pendelwinkel
+phi_dotStart = 0; % Startgeschwindigkeit Pendel
+
+
+%% Initialisierung des Reglers
+tic
+reglerInit 
+
+IC = [phiStart, phi_dotStart, xStart, x_dotStart]; %Vektor mit Anfangsbedingungen 
+
+%% Simulation
+tmax = 10000; % Maximal erlaubte Zeit in s (600 für Präsentationsfolie)
+tSim = [0,tmax]; % Zeitintervall über das simuliert wird
+
+simIn = Simulink.SimulationInput("simulation");
+simIn = setModelParameter(simIn,"StopTime",num2str(tmax));
+simIn = setModelParameter(simIn,"StartTime",num2str(0));
+simIn = setModelParameter(simIn,"TimeOut",600);
+simOut = sim(simIn);
+disp('Simulation beendet')
+toc
+disp('Endzeit:')
+simOut.tout(end,1)
+disp('constraint verletzt?')
+simOut.constraint_violation(1,2)
+
+
+%% Plots der Simulationsergebnisse
+close all
+
+phiSim = simOut.yout(:,1);
+phidotSim = simOut.yout(:,2);
+xSim = simOut.yout(:,3);
+xdotSim = simOut.yout(:,4);
+xsollSim = simOut.yout(:,5); 
+xdiffSim = simOut.yout(:,6); 
+
+figure('Name','Zustaende')
+subplot(2,2,1)
+hold all
+plot(simOut.tout,180/pi*phiSim)
+plot([simOut.tout(1),simOut.tout(end)],[phi_max*180/pi,phi_max*180/pi],'Color','r');
+plot([simOut.tout(1),simOut.tout(end)],[-phi_max*180/pi,-phi_max*180/pi],'Color','r');
+title('Pendelwinkel in Grad')
+xlabel('time in s')
+subplot(2,2,2)
+hold all
+plot(simOut.tout,phidotSim)
+title('Drehgeschwindigkeit Pendel in rad/s');
+xlabel('time in s')
+subplot(2,2,3)
+hold all
+plot(simOut.tout,xSim)
+title('Position Schlitten in m');
+plot([simOut.tout(1),simOut.tout(end)],[L/2,L/2],'Color','r');
+plot([simOut.tout(1),simOut.tout(end)],[-L/2,-L/2],'Color','r');
+xlabel('time in s')
+subplot(2,2,4)
+hold all
+plot(simOut.tout,xdotSim)
+title('Geschwindigkeit Schlitten in m/s');
+xlabel('time in s')
+
+figure('Name','Referenzposition')
+hold all
+grid on
+plot(simOut.tout,xSim)
+plot(simOut.tout,xsollSim)
+legend({'Position', 'Referenzposition'})
+title('Position Schlitten und Refernzpositions')
+xlabel('time in s')
+ylabel('in m')
+
+figure('Name','Abweichung Position')
+hold all
+grid on
+plot(simOut.tout,xdiffSim)
+title('Differenz zur Referenzposition')
+xlabel('time in s')
+ylabel('Differenz in m')
+
+%cool
